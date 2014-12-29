@@ -2,9 +2,12 @@
 	<target name="Build">
 		<jar file="../nightly/elasstic.jar">
 			<fileset dir="..">
+				<exclude name="bin/**" />
 				<exclude name="build/**" />
 				<exclude name=".settings/**" />
 				<exclude name="src/**" />
+			</fileset>
+			<fileset dir="../bin">
 			</fileset>
 		</jar>
 	</target>
