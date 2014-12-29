@@ -1,0 +1,11 @@
+<project name="Elasstic">
+	<target name="Build">
+		<jar file="nightly/elasstic.jar">
+			<fileset dir=".">
+				<exclude name="build/**" />
+				<exclude name=".settings/**" />
+				<exclude name="src/**" />
+			</fileset>
+		</jar>
+	</target>
+</project>

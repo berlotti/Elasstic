@@ -1,9 +1,0 @@
-<project name="Elasstic">
-	<target name="Build">
-		<jar file="nightly/elasstic.jar">
-			<fileset dir="bin"/>
-			<fileset dir="plugin"/>
-			<fileset dir="input"/>
-		</jar>
-	</target>
-</project>
