@@ -1,13 +1,70 @@
 {
   services: [
     {
-      name: "Example Service",
-      identifier: "ex1",
-      provider: "BIMserver",
-      description: "This example service will add csv files as extended data",
+      name: "Example Earthquake Service",
+      identifier: "1507414",
+      provider: "services.elassticbim.eu",
+      description: "Generates a fake earthquake simulation result",
       notificationProtocol: "JSON",
       trigger: "NEW_REVISION",
-      url: "http://test.example.org",
+      url: "http://services.elassticbim.eu",
+      companyUrl: "http://www.bimserver.org",
+      tokenUrl: null,
+      newProfileUrl: "",
+      providerName: "",
+      rights: {
+        readRevision: true,
+        readExtendedData: null,
+        writeRevision: false,
+        writeExtendedData: "http://www.elassticbim.eu/simulation"
+      }
+    },
+    {
+      name: "Example Evacuation Service",
+      identifier: "1572950",
+      provider: "services.elassticbim.eu",
+      description: "Generates a fake evacuation simulation result",
+      notificationProtocol: "JSON",
+      trigger: "NEW_REVISION",
+      url: "http://services.elassticbim.eu",
+      companyUrl: "http://www.bimserver.org",
+      tokenUrl: null,
+      newProfileUrl: "",
+      providerName: "",
+      rights: {
+        readRevision: true,
+        readExtendedData: null,
+        writeRevision: false,
+        writeExtendedData: "http://www.elassticbim.eu/simulation"
+      }
+    },
+    {
+      name: "Example Explosion Service",
+      identifier: "1638486",
+      provider: "services.elassticbim.eu",
+      description: "Generates a fake explosion simulation result",
+      notificationProtocol: "JSON",
+      trigger: "NEW_REVISION",
+      url: "http://services.elassticbim.eu",
+      companyUrl: "http://www.bimserver.org",
+      tokenUrl: null,
+      newProfileUrl: "",
+      providerName: "",
+      rights: {
+        readRevision: true,
+        readExtendedData: null,
+        writeRevision: false,
+        writeExtendedData: "http://www.elassticbim.eu/simulation"
+      }
+    },
+        {
+      name: "Example Plain Service",
+      identifier: "1704022",
+      provider: "services.elassticbim.eu",
+      description: "Generates a fake plain simulation result",
+      notificationProtocol: "JSON",
+      trigger: "NEW_REVISION",
+      url: "http://services.elassticbim.eu",
       companyUrl: "http://www.bimserver.org",
       tokenUrl: null,
       newProfileUrl: "",
