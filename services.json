@@ -4,7 +4,7 @@
       name: "Example Service",
       identifier: "ex1",
       provider: "BIMserver",
-      description: "This is an example service",
+      description: "This example service will add csv files as extended data",
       notificationProtocol: "JSON",
       trigger: "NEW_REVISION",
       url: "http://test.example.org",
@@ -15,8 +15,8 @@
       rights: {
         readRevision: true,
         readExtendedData: null,
-        writeRevision: true,
-        writeExtendedData: null
+        writeRevision: false,
+        writeExtendedData: "http://www.elassticbim.eu/simulation"
       }
     }
   ]
