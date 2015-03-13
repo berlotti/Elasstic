@@ -101,7 +101,7 @@ public abstract class ElassticTestService extends ServicePlugin {
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						IOUtils.copy(pluginContext.getResourceAsInputStream("input/" + getCsvFileName()), baos);
 						file.setData(baos.toByteArray());
-						file.setMime("text/csv");
+						file.setMime("text/json");
 
 						long fileId = bimServerClientInterface.getServiceInterface().uploadFile(file);
 						extendedData.setFileId(fileId);
