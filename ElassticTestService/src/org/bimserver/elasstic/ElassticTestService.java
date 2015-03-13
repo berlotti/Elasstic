@@ -74,7 +74,7 @@ public abstract class ElassticTestService extends ServicePlugin {
 		serviceDescriptor.setNotificationProtocol(AccessMethod.INTERNAL);
 		serviceDescriptor.setTrigger(Trigger.NEW_REVISION);
 		serviceDescriptor.setReadRevision(true);
-		serviceDescriptor.setWriteExtendedData("http://www.elassticbim.eu/simulation");
+		serviceDescriptor.setWriteExtendedData("http://bimserver.org/3dvisualizationeffects");
 		registerNewRevisionHandler(uoid, serviceDescriptor, new NewRevisionHandler() {
 			@Override
 			public void newRevision(BimServerClientInterface bimServerClientInterface, long poid, long roid, String userToken, long soid, SObjectType settings) throws ServerException, UserException {
@@ -89,7 +89,7 @@ public abstract class ElassticTestService extends ServicePlugin {
 					bimServerClientInterface.getRegistry().updateProgressTopic(topicId, state);
 					
 					SExtendedDataSchema extendedDataSchemaByNamespace = bimServerClientInterface.getBimsie1ServiceInterface().getExtendedDataSchemaByNamespace(
-							"http://www.elassticbim.eu/simulation");
+							"http://bimserver.org/3dvisualizationeffects");
 
 					SFile file = new SFile();
 
