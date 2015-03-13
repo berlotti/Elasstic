@@ -4,7 +4,7 @@ public class EvacuationService extends ElassticTestService {
 
 	@Override
 	public String getCsvFileName() {
-		return "evacuation.csv";
+		return "evacuation.json";
 	}
 
 	@Override

@@ -1,0 +1,37 @@
+{
+	"name": "Gebroken ramen",
+	"changes": [{
+		"selector": {
+			"guids": [
+			 	"2LBVZYXwr2DfT6AQJNHesi", 
+			 	"2LBVZYXwr2DfT6AQJNHeuv"
+			]
+		},
+		"effect": {
+			"color": {"r": 1, "g": 0, "b": 0, "a": 1}
+		}
+	},
+	{
+		"selector": {
+			"guids": [
+			 	"2LBVZYXwr2DfT6AQJNHet2", 
+			 	"2LBVZYXwr2DfT6AQJNHetL"
+			]
+		},
+		"effect": {
+			"color": {"r": 0, "g": 1, "b": 0, "a": 1}
+		}
+	},
+	{
+		"selector": {
+			"guids": [
+			 	"2LBVZYXwr2DfT6AQJNHetU", 
+			 	"2LBVZYXwr2DfT6AQJNHetr",
+			 	"2LBVZYXwr2DfT6AQJNHet_"
+			]
+		},
+		"effect": {
+			"color": {"r": 1, "g": 0.5, "b": 0, "a": 1}
+		}
+	}]
+}
