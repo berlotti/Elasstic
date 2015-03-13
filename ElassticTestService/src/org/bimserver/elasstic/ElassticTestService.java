@@ -3,7 +3,7 @@ package org.bimserver.elasstic;
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
-import org.apache.cxf.helpers.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.bimserver.interfaces.objects.SActionState;
 import org.bimserver.interfaces.objects.SExtendedData;
 import org.bimserver.interfaces.objects.SExtendedDataSchema;
