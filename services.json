@@ -11,7 +11,7 @@
       companyUrl: "http://www.bimserver.org",
       tokenUrl: null,
       newProfileUrl: "",
-      providerName: "",
+      providerName: "services.elassticbim.eu",
       rights: {
         readRevision: true,
         readExtendedData: null,
@@ -30,7 +30,7 @@
       companyUrl: "http://www.bimserver.org",
       tokenUrl: null,
       newProfileUrl: "",
-      providerName: "",
+      providerName: "services.elassticbim.eu",
       rights: {
         readRevision: true,
         readExtendedData: null,
@@ -49,7 +49,7 @@
       companyUrl: "http://www.bimserver.org",
       tokenUrl: null,
       newProfileUrl: "",
-      providerName: "",
+      providerName: "services.elassticbim.eu",
       rights: {
         readRevision: true,
         readExtendedData: null,
@@ -68,7 +68,7 @@
       companyUrl: "http://www.bimserver.org",
       tokenUrl: null,
       newProfileUrl: "",
-      providerName: "",
+      providerName: "services.elassticbim.eu",
       rights: {
         readRevision: true,
         readExtendedData: null,
