@@ -54,7 +54,7 @@ import org.bimserver.plugins.renderengine.RenderEngineModel;
 import org.bimserver.plugins.renderengine.RenderEnginePlugin;
 import org.bimserver.plugins.renderengine.RenderEngineSettings;
 
-public class AreasCalculator {
+public class AreasCalculator extends Calculator {
 	public static void main(String[] args) {
 		new AreasCalculator().start(args);
 	}
@@ -96,7 +96,7 @@ public class AreasCalculator {
 			DeserializerPlugin ifcDeserializerPlugin = pluginManager.getFirstDeserializer("ifc", Schema.IFC2X3TC1, true);
 			File dir = new File("E:\\elasticlastfiles");
 			
-			Workbook wb = new HSSFWorkbook();  // or new XSSFWorkbook();
+			Workbook wb = new HSSFWorkbook();
 
 			Map<String, Areas> totalmap = new TreeMap<>();
 			
@@ -184,10 +184,9 @@ public class AreasCalculator {
 			    writeRow(sheet, row++, "Department", "Classification", "# Areas", "Total m2");
 			    row++;
 				for (Areas areas : map.values()) {
-					writeRow(sheet, row++, areas.department == null ? "No Department" : areas.department, areas.classification, "" + areas.nrAreas, "" + formatter.format(areas.totalArea));
+					writeRow(sheet, row++, areas.department == null ? "No Department" : areas.department, areas.classification, areas.nrAreas, areas.totalArea);
 				}
 			}
-			
 			
 			Map<String, Splitted> splittedmap = new HashMap<String, AreasCalculator.Splitted>();
 			
@@ -212,7 +211,7 @@ public class AreasCalculator {
 			writeRow(totalSheet, 0, "Department", "# Areas", "Functional m2", "Circulation m2", "Other m2", "Total m2");
 			int row = 2;
 			for (Splitted splitted : splittedmap.values()) {
-				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, "" + splitted.nrobjects, formatter.format(splitted.functionalm2), formatter.format(splitted.circulationm2), formatter.format(splitted.otherm2), formatter.format(splitted.totalm2));
+				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, "" + splitted.nrobjects, splitted.functionalm2, splitted.circulationm2, splitted.otherm2, splitted.totalm2);
 			}
 			File file2 = new File(dir, "elasstic.xls");
 			FileOutputStream fileOut = new FileOutputStream(file2);
@@ -247,36 +246,6 @@ public class AreasCalculator {
 		}
 	}
 	
-	private void writeRow(Sheet sheet, int rowNr, String... values) {
-	    Row row = sheet.createRow((short)rowNr);
-	    int col = 0;
-	    for (String value : values) {
-	    	Cell cell = row.createCell(col++);
-	    	cell.setCellValue(value);
-	    }
-	}
-	
-	private Double calculateArea(IfcSpace ifcSpace) {
-		IfcProductRepresentation representation = ifcSpace.getRepresentation();
-		for (IfcRepresentation ifcRepresentation : representation.getRepresentations()) {
-			for (IfcRepresentationItem ifcRepresentationItem : ifcRepresentation.getItems()) {
-				if (ifcRepresentationItem instanceof IfcExtrudedAreaSolid) {
-					IfcExtrudedAreaSolid ifcExtrudedAreaSolid = (IfcExtrudedAreaSolid)ifcRepresentationItem;
-					IfcProfileDef ifcProfileDef = ifcExtrudedAreaSolid.getSweptArea();
-					if (ifcProfileDef instanceof IfcRectangleProfileDef) {
-						IfcRectangleProfileDef ifcRectangleProfileDef = (IfcRectangleProfileDef)ifcProfileDef;
-						return ((ifcRectangleProfileDef.getXDim() / 1000.0) * (ifcRectangleProfileDef.getYDim() / 1000.0));
-					} else {
-						System.out.println("Unimplemented: " + ifcProfileDef);
-					}
-				} else {
-					System.out.println("Unimplemented: " + ifcRepresentationItem);
-				}
-			}
-		}
-		return null;
-	}
-
 	public void dumpProperties(IfcSpace ifcObject) {
 		for (IfcRelDefines ifcRelDefines : ifcObject.getIsDefinedBy()) {
 			if (ifcRelDefines instanceof IfcRelDefinesByProperties) {
