@@ -5,5 +5,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Shared"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/BimServer"/>
 	<classpathentry kind="lib" path="lib/csv.jar"/>
+	<classpathentry kind="lib" path="lib/poi-3.11-20141221.jar"/>
+	<classpathentry kind="lib" path="lib/poi-excelant-3.11-20141221.jar"/>
+	<classpathentry kind="lib" path="lib/poi-ooxml-3.11-20141221.jar"/>
+	<classpathentry kind="lib" path="lib/poi-ooxml-schemas-3.11-20141221.jar"/>
+	<classpathentry kind="lib" path="lib/poi-scratchpad-3.11-20141221.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

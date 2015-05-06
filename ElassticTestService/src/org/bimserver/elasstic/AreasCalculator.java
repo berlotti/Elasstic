@@ -3,13 +3,21 @@ package org.bimserver.elasstic;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.bimserver.LocalDevSetup;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.emf.Schema;
@@ -46,29 +54,52 @@ import org.bimserver.plugins.renderengine.RenderEngineModel;
 import org.bimserver.plugins.renderengine.RenderEnginePlugin;
 import org.bimserver.plugins.renderengine.RenderEngineSettings;
 
-import au.com.bytecode.opencsv.CSVWriter;
-
-import com.google.common.base.Charsets;
-
 public class AreasCalculator {
 	public static void main(String[] args) {
 		new AreasCalculator().start(args);
 	}
 	
 	private class Areas {
-		public Areas(String name) {
-			this.name = name;
+		public String department;
+		public Areas(String department, String name) {
+			this.department = department;
+			this.classification = name;
 		}
-		public String name;
+		public String classification;
 		public int nrAreas;
 		public double totalArea;
 	}
 
 	private void start(String[] args) {
-		PluginManager pluginManager = LocalDevSetup.setupPluginManager(args);
+	    NumberFormat formatter = new DecimalFormat("#0.00");     
 		try {
+			Map<String, List<String>> mappings = new HashMap<>();
+			
+			Workbook inputWb = WorkbookFactory.create(new File("input/Relation classification functional areas.xlsx"));
+			Sheet firstSheet = inputWb.getSheetAt(0);
+			String currentFunction = null;
+			List<String> list = null;
+			for (int i=firstSheet.getFirstRowNum(); i<=firstSheet.getLastRowNum(); i++) {
+				Row row = firstSheet.getRow(i);
+				if (row != null) {
+					Cell cell0 = row.getCell(0);
+					if (cell0 != null && !cell0.getStringCellValue().equals("")) {
+						currentFunction = cell0.getStringCellValue();
+						list = new ArrayList<>();
+						mappings.put(currentFunction, list);
+					}
+					list.add(row.getCell(1).getStringCellValue());
+				}
+			}
+			
+			PluginManager pluginManager = LocalDevSetup.setupPluginManager(args);
 			DeserializerPlugin ifcDeserializerPlugin = pluginManager.getFirstDeserializer("ifc", Schema.IFC2X3TC1, true);
 			File dir = new File("E:\\elasticlastfiles");
+			
+			Workbook wb = new HSSFWorkbook();  // or new XSSFWorkbook();
+
+			Map<String, Areas> totalmap = new TreeMap<>();
+			
 			for (File file : dir.listFiles()) {
 				if (!file.getName().endsWith(".ifc")) {
 					continue;
@@ -92,8 +123,7 @@ public class AreasCalculator {
 				renderEngineModel.setSettings(settings);
 				renderEngineModel.generateGeneralGeometry();
 				
-				Map<String, Areas> map = new HashMap<>();
-				Set<String> departments = new HashSet<>();
+				Map<String, Areas> map = new TreeMap<>();
 
 				Map<String, Double> totalAreaMap = new HashMap<>();
 				
@@ -112,22 +142,28 @@ public class AreasCalculator {
 //						System.out.println(file.getName() + " - IfcSpace with no name");
 					}
 					String department = getNameProperty(ifcSpace, "Department");
-					if (department == null) {
-//						System.out.println(file.getName() + " - " + "No Department " + ifcSpace.getGlobalId());
-					} else {
-						departments.add(department);
-					}
 					Double area = getDoubleProperty(ifcSpace, "Area");
-					Areas areas = map.get(name);
-					if (areas == null) {
-						areas = new Areas(name);
-						areas.name = name;
-						map.put(name, areas);
-					}
 					if (area == null && instance != null) {
-						area = instance.getArea() / 1000000.0;
+					}
+					area = instance.getArea() / 1000000.0;
+					
+					Areas areas = map.get(department + "_" + name);
+					if (areas == null) {
+						areas = new Areas(department, name);
+						map.put(department + "_" + name, areas);
 					}
 					areas.totalArea += area;
+					areas.nrAreas++;
+					
+					Areas totalAreas = totalmap.get(department + "_" + name);
+					if (totalAreas == null) {
+						totalAreas = new Areas(department, name);
+						totalmap.put(department + "_" + name, totalAreas);
+					}
+					totalAreas.totalArea += area;
+					totalAreas.nrAreas++;
+
+					
 //					dumpProperties(ifcSpace);
 					
 					Double totalArea = totalAreaMap.get(department);
@@ -137,34 +173,87 @@ public class AreasCalculator {
 						totalAreaMap.put(department, totalAreaMap.get(department) + area);
 					}
 					
-					areas.nrAreas++;
 				}
 				
 				renderEngineModel.close();
 				renderEngine.close();
 				
-				System.out.println(file.getName() + " - " + StringUtils.join(departments, " "));
-				CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(new FileOutputStream(new File(dir, file.getName() + ".csv")), Charsets.UTF_8));
-				csvWriter.writeNext(new String[]{
-					"Classification",
-					"# Areas",
-					"Total m2"
-				});
+				int row = 0;
+			    Sheet sheet = wb.createSheet(file.getName());
+			    
+			    writeRow(sheet, row++, "Department", "Classification", "# Areas", "Total m2");
+			    row++;
 				for (Areas areas : map.values()) {
-					csvWriter.writeNext(new String[]{
-						areas.name, "" + areas.nrAreas, "" + areas.totalArea
-					});
+					writeRow(sheet, row++, areas.department == null ? "No Department" : areas.department, areas.classification, "" + areas.nrAreas, "" + formatter.format(areas.totalArea));
 				}
-				csvWriter.writeNext(new String[]{});
-				csvWriter.close();
 			}
+			
+			
+			Map<String, Splitted> splittedmap = new HashMap<String, AreasCalculator.Splitted>();
+			
+			for (Areas areas : totalmap.values()) {
+				Splitted splitted = splittedmap.get(areas.department);
+				if (splitted == null) {
+					splitted = new Splitted(areas.department, 0, 0, 0);
+					splittedmap.put(areas.department, splitted);
+				}
+				splitted.totalm2 += areas.totalArea;
+				splitted.nrobjects += areas.nrAreas;
+				if (mappings.get("Functional").contains(areas.classification)) {
+					splitted.functionalm2 += areas.totalArea;
+				} else if (mappings.get("Circulation").contains(areas.classification)) {
+					splitted.circulationm2 += areas.totalArea;
+				} else {
+					splitted.otherm2 += areas.totalArea;
+				}
+			}
+			
+			Sheet totalSheet = wb.createSheet("Total");
+			writeRow(totalSheet, 0, "Department", "# Areas", "Functional m2", "Circulation m2", "Other m2", "Total m2");
+			int row = 2;
+			for (Splitted splitted : splittedmap.values()) {
+				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, "" + splitted.nrobjects, formatter.format(splitted.functionalm2), formatter.format(splitted.circulationm2), formatter.format(splitted.otherm2), formatter.format(splitted.totalm2));
+			}
+			File file2 = new File(dir, "elasstic.xls");
+			FileOutputStream fileOut = new FileOutputStream(file2);
+			wb.write(fileOut);
+			wb.close();
+			fileOut.close();
 		} catch (PluginException e) {
 			e.printStackTrace();
 		} catch (DeserializeException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (InvalidFormatException e) {
+			e.printStackTrace();
 		}
+	}
+	
+	class Splitted {
+		public int nrobjects;
+		public double otherm2;
+		private String department;
+		private double totalm2;
+		private double functionalm2;
+		private double circulationm2;
+
+		public Splitted(String department, double totalm2, double functionalm2, double circulationm2) {
+			this.department = department;
+			this.totalm2 = totalm2;
+			this.functionalm2 = functionalm2;
+			this.circulationm2 = circulationm2;
+			
+		}
+	}
+	
+	private void writeRow(Sheet sheet, int rowNr, String... values) {
+	    Row row = sheet.createRow((short)rowNr);
+	    int col = 0;
+	    for (String value : values) {
+	    	Cell cell = row.createCell(col++);
+	    	cell.setCellValue(value);
+	    }
 	}
 	
 	private Double calculateArea(IfcSpace ifcSpace) {
