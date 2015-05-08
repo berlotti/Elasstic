@@ -8,8 +8,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.bimserver.LocalDevSetup;
@@ -39,8 +37,6 @@ public class FloodingCalculator extends Calculator {
 	}
 
 	private void start(String[] args) {
-		float level = 500.0f;
-		
 		PluginManager pluginManager = LocalDevSetup.setupPluginManager(args);
 		try {
 			DeserializerPlugin ifcDeserializerPlugin = pluginManager.getFirstDeserializer("ifc", Schema.IFC2X3TC1, true);

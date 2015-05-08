@@ -3,8 +3,6 @@ package org.bimserver.elasstic;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,21 +20,15 @@ import org.bimserver.LocalDevSetup;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.emf.Schema;
 import org.bimserver.models.ifc2x3tc1.IfcAreaMeasure;
-import org.bimserver.models.ifc2x3tc1.IfcExtrudedAreaSolid;
 import org.bimserver.models.ifc2x3tc1.IfcIdentifier;
 import org.bimserver.models.ifc2x3tc1.IfcLabel;
 import org.bimserver.models.ifc2x3tc1.IfcLengthMeasure;
-import org.bimserver.models.ifc2x3tc1.IfcProductRepresentation;
-import org.bimserver.models.ifc2x3tc1.IfcProfileDef;
 import org.bimserver.models.ifc2x3tc1.IfcProperty;
 import org.bimserver.models.ifc2x3tc1.IfcPropertySet;
 import org.bimserver.models.ifc2x3tc1.IfcPropertySetDefinition;
 import org.bimserver.models.ifc2x3tc1.IfcPropertySingleValue;
-import org.bimserver.models.ifc2x3tc1.IfcRectangleProfileDef;
 import org.bimserver.models.ifc2x3tc1.IfcRelDefines;
 import org.bimserver.models.ifc2x3tc1.IfcRelDefinesByProperties;
-import org.bimserver.models.ifc2x3tc1.IfcRepresentation;
-import org.bimserver.models.ifc2x3tc1.IfcRepresentationItem;
 import org.bimserver.models.ifc2x3tc1.IfcSpace;
 import org.bimserver.models.ifc2x3tc1.IfcText;
 import org.bimserver.models.ifc2x3tc1.IfcValue;
@@ -71,7 +63,6 @@ public class AreasCalculator extends Calculator {
 	}
 
 	private void start(String[] args) {
-	    NumberFormat formatter = new DecimalFormat("#0.00");     
 		try {
 			Map<String, List<String>> mappings = new HashMap<>();
 			
@@ -208,10 +199,10 @@ public class AreasCalculator extends Calculator {
 			}
 			
 			Sheet totalSheet = wb.createSheet("Total");
-			writeRow(totalSheet, 0, "Department", "# Areas", "Functional m2", "Circulation m2", "Other m2", "Total m2");
+			writeRow(totalSheet, 0, "Department", "# Areas", "Functional m2", "Circulation m2", "Total m2");
 			int row = 2;
 			for (Splitted splitted : splittedmap.values()) {
-				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, "" + splitted.nrobjects, splitted.functionalm2, splitted.circulationm2, splitted.otherm2, splitted.totalm2);
+				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, "" + splitted.nrobjects, splitted.functionalm2, splitted.circulationm2, splitted.totalm2);
 			}
 			File file2 = new File(dir, "elasstic.xls");
 			FileOutputStream fileOut = new FileOutputStream(file2);
