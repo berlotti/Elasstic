@@ -46,7 +46,7 @@ public class FloodingCalculator extends Calculator {
 			Sheet sheet = wb.createSheet("Flooding");
 
 			int row = 0;
-			writeRow(sheet, row++, "GUID", "Name", "File", "Elevation (m)");
+			writeRow(sheet, row++, "GUID", "Name", "File", "Elevation (m)", "Department", "Classification", "Function", "Area (m2)");
 			row++;
 			
 			for (File file : dir.listFiles()) {

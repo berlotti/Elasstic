@@ -47,137 +47,77 @@ import org.bimserver.plugins.renderengine.RenderEnginePlugin;
 import org.bimserver.plugins.renderengine.RenderEngineSettings;
 
 public class AreasCalculator extends Calculator {
+	public AreasCalculator(String[] args) {
+		super(args);
+	}
+
 	public static void main(String[] args) {
-		new AreasCalculator().start(args);
+		new AreasCalculator(args).start();
 	}
 	
 	private class Areas {
 		public String department;
-		public Areas(String department, String name) {
-			this.department = department;
-			this.classification = name;
-		}
 		public String classification;
 		public int nrAreas;
 		public double totalArea;
+
+		public Areas(String department, String classification) {
+			this.department = department;
+			this.classification = classification;
+		}
 	}
 
-	private void start(String[] args) {
+	private void start() {
 		try {
-			Map<String, List<String>> mappings = new HashMap<>();
-			
-			Workbook inputWb = WorkbookFactory.create(new File("input/Relation classification functional areas.xlsx"));
-			Sheet firstSheet = inputWb.getSheetAt(0);
-			String currentFunction = null;
-			List<String> list = null;
-			for (int i=firstSheet.getFirstRowNum(); i<=firstSheet.getLastRowNum(); i++) {
-				Row row = firstSheet.getRow(i);
-				if (row != null) {
-					Cell cell0 = row.getCell(0);
-					if (cell0 != null && !cell0.getStringCellValue().equals("")) {
-						currentFunction = cell0.getStringCellValue();
-						list = new ArrayList<>();
-						mappings.put(currentFunction, list);
-					}
-					list.add(row.getCell(1).getStringCellValue());
-				}
-			}
-			
-			PluginManager pluginManager = LocalDevSetup.setupPluginManager(args);
-			DeserializerPlugin ifcDeserializerPlugin = pluginManager.getFirstDeserializer("ifc", Schema.IFC2X3TC1, true);
-			File dir = new File("E:\\elasticlastfiles");
-			
 			Workbook wb = new HSSFWorkbook();
 
 			Map<String, Areas> totalmap = new TreeMap<>();
 			
+			File dir = new File("E:\\elasticlastfiles");
 			for (File file : dir.listFiles()) {
 				if (!file.getName().endsWith(".ifc")) {
 					continue;
 				}
-				Deserializer ifcDeserializer  = ifcDeserializerPlugin.createDeserializer(new PluginConfiguration());
-				ifcDeserializer.init(pluginManager.getMetaDataManager().getPackageMetaData("ifc2x3tc1"));
-				IfcModelInterface model = ifcDeserializer.read(file);
-				
-				RenderEnginePlugin renderEnginePlugin = pluginManager.getRenderEngine("org.bimserver.ifcengine.JvmRenderEnginePlugin", true);
-				RenderEngine renderEngine = renderEnginePlugin.createRenderEngine(new PluginConfiguration(), "ifc2x3tc1");
-				renderEngine.init();
-				
-				final RenderEngineSettings settings = new RenderEngineSettings();
-				settings.setPrecision(Precision.SINGLE);
-				settings.setIndexFormat(IndexFormat.AUTO_DETECT);
-				settings.setGenerateNormals(true);
-				settings.setGenerateTriangles(true);
-				settings.setGenerateWireFrame(false);
-				
-				RenderEngineModel renderEngineModel = renderEngine.openModel(file);
-				renderEngineModel.setSettings(settings);
-				renderEngineModel.generateGeneralGeometry();
-				
 				Map<String, Areas> map = new TreeMap<>();
-
 				Map<String, Double> totalAreaMap = new HashMap<>();
-				
-				for (IfcSpace ifcSpace : model.getAllWithSubTypes(IfcSpace.class)) {
-					RenderEngineInstance instance = null;
-					if (ifcSpace.getRepresentation() != null) {
-						instance = renderEngineModel.getInstanceFromExpressId(ifcSpace.getExpressId());
-					}
-					String name = getNameProperty(ifcSpace, "Name");
-					if (name == null) {
-						if (ifcSpace.getLongName() != null) {
-							name = ifcSpace.getLongName();
-						} else {
-							name = "No Name";
-						}
-//						System.out.println(file.getName() + " - IfcSpace with no name");
-					}
-					String department = getNameProperty(ifcSpace, "Department");
-					Double area = getDoubleProperty(ifcSpace, "Area");
-					if (area == null && instance != null) {
-					}
-					area = instance.getArea() / 1000000.0;
-					
-					Areas areas = map.get(department + "_" + name);
+
+				List<Space> spaces = calculateSpaces(file);
+				for (Space space : spaces) {
+					Areas areas = map.get(space.getDepartment() + "_" + space.getClassification());
 					if (areas == null) {
-						areas = new Areas(department, name);
-						map.put(department + "_" + name, areas);
+						areas = new Areas(space.getDepartment(), space.getClassification());
+						map.put(space.getDepartment() + "_" + space.getClassification(), areas);
 					}
-					areas.totalArea += area;
+					areas.totalArea += space.getArea();
 					areas.nrAreas++;
 					
-					Areas totalAreas = totalmap.get(department + "_" + name);
+					Areas totalAreas = totalmap.get(space.getDepartment() + "_" + space.getClassification());
 					if (totalAreas == null) {
-						totalAreas = new Areas(department, name);
-						totalmap.put(department + "_" + name, totalAreas);
+						totalAreas = new Areas(space.getDepartment(), space.getClassification());
+						totalmap.put(space.getDepartment() + "_" + space.getClassification(), totalAreas);
 					}
-					totalAreas.totalArea += area;
+					totalAreas.totalArea += space.getArea();
 					totalAreas.nrAreas++;
 
-					
-//					dumpProperties(ifcSpace);
-					
-					Double totalArea = totalAreaMap.get(department);
+					Double totalArea = totalAreaMap.get(space.getDepartment());
 					if (totalArea == null) {
-						totalAreaMap.put(department, area);
+						totalAreaMap.put(space.getDepartment(), space.getArea());
 					} else {
-						totalAreaMap.put(department, totalAreaMap.get(department) + area);
+						totalAreaMap.put(space.getDepartment(), totalAreaMap.get(space.getDepartment()) + space.getArea());
 					}
-					
 				}
 				
-				renderEngineModel.close();
-				renderEngine.close();
-				
+				Sheet sheet = wb.createSheet(file.getName());
 				int row = 0;
-			    Sheet sheet = wb.createSheet(file.getName());
-			    
-			    writeRow(sheet, row++, "Department", "Classification", "# Areas", "Total m2");
-			    row++;
+				
+				writeRow(sheet, row++, "Department", "Classification", "# Areas", "Total m2");
+				row++;
 				for (Areas areas : map.values()) {
 					writeRow(sheet, row++, areas.department == null ? "No Department" : areas.department, areas.classification, areas.nrAreas, areas.totalArea);
 				}
+
 			}
+				
 			
 			Map<String, Splitted> splittedmap = new HashMap<String, AreasCalculator.Splitted>();
 			
@@ -271,63 +211,5 @@ public class AreasCalculator extends Calculator {
 				}
 			}
 		}
-	}
-	
-	public String getNameProperty(IfcSpace ifcObject, String name) {
-		for (IfcRelDefines ifcRelDefines : ifcObject.getIsDefinedBy()) {
-			if (ifcRelDefines instanceof IfcRelDefinesByProperties) {
-				IfcRelDefinesByProperties ifcRelDefinesByProperties = (IfcRelDefinesByProperties)ifcRelDefines;
-				IfcPropertySetDefinition relatingPropertyDefinition = ifcRelDefinesByProperties.getRelatingPropertyDefinition();
-				if (relatingPropertyDefinition instanceof IfcPropertySet) {
-					IfcPropertySet ifcPropertySet = (IfcPropertySet)relatingPropertyDefinition;
-					for (IfcProperty ifcProperty : ifcPropertySet.getHasProperties()) {
-						if (ifcProperty.getName().equals(name)) {
-							if (ifcProperty instanceof IfcPropertySingleValue) {
-								IfcPropertySingleValue ifcPropertySingleValue = (IfcPropertySingleValue)ifcProperty;
-								IfcValue value = ifcPropertySingleValue.getNominalValue();
-								if (value instanceof IfcText) {
-									IfcText ifcText = (IfcText)value;
-									return ifcText.getWrappedValue();
-								} else if (value instanceof IfcIdentifier) {
-									IfcIdentifier ifcIdentifier = (IfcIdentifier)value;
-									return ifcIdentifier.getWrappedValue();
-								} else if (value instanceof IfcLabel) {
-									IfcLabel ifcIdentifier = (IfcLabel)value;
-									return ifcIdentifier.getWrappedValue();
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	public Double getDoubleProperty(IfcSpace ifcObject, String name) {
-		for (IfcRelDefines ifcRelDefines : ifcObject.getIsDefinedBy()) {
-			if (ifcRelDefines instanceof IfcRelDefinesByProperties) {
-				IfcRelDefinesByProperties ifcRelDefinesByProperties = (IfcRelDefinesByProperties)ifcRelDefines;
-				IfcPropertySetDefinition relatingPropertyDefinition = ifcRelDefinesByProperties.getRelatingPropertyDefinition();
-				if (relatingPropertyDefinition instanceof IfcPropertySet) {
-					IfcPropertySet ifcPropertySet = (IfcPropertySet)relatingPropertyDefinition;
-					for (IfcProperty ifcProperty : ifcPropertySet.getHasProperties()) {
-						if (ifcProperty.getName().equals(name)) {
-							if (ifcProperty instanceof IfcPropertySingleValue) {
-								IfcPropertySingleValue ifcPropertySingleValue = (IfcPropertySingleValue)ifcProperty;
-								IfcValue value = ifcPropertySingleValue.getNominalValue();
-								if (value instanceof IfcAreaMeasure) {
-									IfcAreaMeasure ifcText = (IfcAreaMeasure)value;
-									return ifcText.getWrappedValue();
-								} else if (value instanceof IfcLengthMeasure) {
-									return ((IfcLengthMeasure)value).getWrappedValue();
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
+	}	
 }
