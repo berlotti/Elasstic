@@ -8,6 +8,7 @@ public class Space {
 	private double area;
 	private String function;
 	private String filename;
+	private float lowestLevel;
 	
 	public Space() {
 		
@@ -67,5 +68,13 @@ public class Space {
 	
 	public String getFilename() {
 		return filename;
+	}
+
+	public float getLowestLevel() {
+		return lowestLevel;
+	}
+	
+	public void setLowestLevel(float lowestLevel) {
+		this.lowestLevel = lowestLevel;
 	}
 }

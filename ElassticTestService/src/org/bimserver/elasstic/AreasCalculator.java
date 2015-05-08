@@ -3,22 +3,14 @@ package org.bimserver.elasstic;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.bimserver.LocalDevSetup;
-import org.bimserver.emf.IfcModelInterface;
-import org.bimserver.emf.Schema;
 import org.bimserver.models.ifc2x3tc1.IfcAreaMeasure;
 import org.bimserver.models.ifc2x3tc1.IfcIdentifier;
 import org.bimserver.models.ifc2x3tc1.IfcLabel;
@@ -32,19 +24,6 @@ import org.bimserver.models.ifc2x3tc1.IfcRelDefinesByProperties;
 import org.bimserver.models.ifc2x3tc1.IfcSpace;
 import org.bimserver.models.ifc2x3tc1.IfcText;
 import org.bimserver.models.ifc2x3tc1.IfcValue;
-import org.bimserver.plugins.PluginConfiguration;
-import org.bimserver.plugins.PluginException;
-import org.bimserver.plugins.PluginManager;
-import org.bimserver.plugins.deserializers.DeserializeException;
-import org.bimserver.plugins.deserializers.Deserializer;
-import org.bimserver.plugins.deserializers.DeserializerPlugin;
-import org.bimserver.plugins.renderengine.IndexFormat;
-import org.bimserver.plugins.renderengine.Precision;
-import org.bimserver.plugins.renderengine.RenderEngine;
-import org.bimserver.plugins.renderengine.RenderEngineInstance;
-import org.bimserver.plugins.renderengine.RenderEngineModel;
-import org.bimserver.plugins.renderengine.RenderEnginePlugin;
-import org.bimserver.plugins.renderengine.RenderEngineSettings;
 
 public class AreasCalculator extends Calculator {
 	public AreasCalculator(String[] args) {
@@ -117,7 +96,6 @@ public class AreasCalculator extends Calculator {
 				}
 
 			}
-				
 			
 			Map<String, Splitted> splittedmap = new HashMap<String, AreasCalculator.Splitted>();
 			
@@ -129,9 +107,9 @@ public class AreasCalculator extends Calculator {
 				}
 				splitted.totalm2 += areas.totalArea;
 				splitted.nrobjects += areas.nrAreas;
-				if (mappings.get("Functional").contains(areas.classification)) {
+				if (getMappings().get("Functional").contains(areas.classification)) {
 					splitted.functionalm2 += areas.totalArea;
-				} else if (mappings.get("Circulation").contains(areas.classification)) {
+				} else if (getMappings().get("Circulation").contains(areas.classification)) {
 					splitted.circulationm2 += areas.totalArea;
 				} else {
 					splitted.otherm2 += areas.totalArea;
@@ -142,20 +120,14 @@ public class AreasCalculator extends Calculator {
 			writeRow(totalSheet, 0, "Department", "# Areas", "Functional m2", "Circulation m2", "Total m2");
 			int row = 2;
 			for (Splitted splitted : splittedmap.values()) {
-				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, "" + splitted.nrobjects, splitted.functionalm2, splitted.circulationm2, splitted.totalm2);
+				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, splitted.nrobjects, splitted.functionalm2, splitted.circulationm2, splitted.totalm2);
 			}
 			File file2 = new File(dir, "elasstic.xls");
 			FileOutputStream fileOut = new FileOutputStream(file2);
 			wb.write(fileOut);
 			wb.close();
 			fileOut.close();
-		} catch (PluginException e) {
-			e.printStackTrace();
-		} catch (DeserializeException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InvalidFormatException e) {
 			e.printStackTrace();
 		}
 	}
