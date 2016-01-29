@@ -1,8 +1,9 @@
 package org.bimserver.elasstic;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.bimserver.models.ifc2x3tc1.IfcRelDefinesByProperties;
 import org.bimserver.models.ifc2x3tc1.IfcSpace;
 import org.bimserver.models.ifc2x3tc1.IfcText;
 import org.bimserver.models.ifc2x3tc1.IfcValue;
+import org.bimserver.utils.PathUtils;
 
 public class AreasCalculator extends Calculator {
 	public AreasCalculator(String[] args) {
@@ -52,9 +54,9 @@ public class AreasCalculator extends Calculator {
 
 			Map<String, Areas> totalmap = new TreeMap<>();
 			
-			File dir = new File("E:\\elasticlastfiles");
-			for (File file : dir.listFiles()) {
-				if (!file.getName().endsWith(".ifc")) {
+			Path dir = Paths.get("E:\\elasticlastfiles");
+			for (Path file : PathUtils.list(dir)) {
+				if (!file.getFileName().toString().endsWith(".ifc")) {
 					continue;
 				}
 				Map<String, Areas> map = new TreeMap<>();
@@ -86,7 +88,7 @@ public class AreasCalculator extends Calculator {
 					}
 				}
 				
-				Sheet sheet = wb.createSheet(file.getName());
+				Sheet sheet = wb.createSheet(file.getFileName().toString());
 				int row = 0;
 				
 				writeRow(sheet, row++, "Department", "Classification", "# Areas", "Total m2");
@@ -122,8 +124,8 @@ public class AreasCalculator extends Calculator {
 			for (Splitted splitted : splittedmap.values()) {
 				writeRow(totalSheet, row++, splitted.department == null ? "No Department" : splitted.department, splitted.nrobjects, splitted.functionalm2, splitted.circulationm2, splitted.totalm2);
 			}
-			File file2 = new File(dir, "elasstic.xls");
-			FileOutputStream fileOut = new FileOutputStream(file2);
+			Path file2 = dir.resolve("elasstic.xls");
+			FileOutputStream fileOut = new FileOutputStream(file2.toFile());
 			wb.write(fileOut);
 			wb.close();
 			fileOut.close();

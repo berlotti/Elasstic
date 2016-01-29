@@ -2,6 +2,8 @@ package org.bimserver.elasstic;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.bimserver.LocalDevSetup;
 import org.bimserver.emf.IfcModelInterface;
-import org.bimserver.emf.Schema;
 import org.bimserver.models.ifc2x3tc1.IfcAreaMeasure;
 import org.bimserver.models.ifc2x3tc1.IfcIdentifier;
 import org.bimserver.models.ifc2x3tc1.IfcLabel;
@@ -30,8 +31,8 @@ import org.bimserver.models.ifc2x3tc1.IfcSpace;
 import org.bimserver.models.ifc2x3tc1.IfcText;
 import org.bimserver.models.ifc2x3tc1.IfcValue;
 import org.bimserver.plugins.PluginConfiguration;
-import org.bimserver.plugins.PluginException;
-import org.bimserver.plugins.PluginManager;
+import org.bimserver.plugins.PluginContext;
+import org.bimserver.plugins.PluginManagerInterface;
 import org.bimserver.plugins.deserializers.DeserializeException;
 import org.bimserver.plugins.deserializers.Deserializer;
 import org.bimserver.plugins.deserializers.DeserializerPlugin;
@@ -43,19 +44,31 @@ import org.bimserver.plugins.renderengine.RenderEngineInstance;
 import org.bimserver.plugins.renderengine.RenderEngineModel;
 import org.bimserver.plugins.renderengine.RenderEnginePlugin;
 import org.bimserver.plugins.renderengine.RenderEngineSettings;
+import org.bimserver.shared.exceptions.PluginException;
 
 public class Calculator {
 
 	private Map<String, List<String>> mappings;
 	private DeserializerPlugin ifcDeserializerPlugin;
-	private PluginManager pluginManager;
+	private PluginManagerInterface pluginManager;
 	private RenderEnginePlugin renderEnginePlugin;
 
 	public Calculator(String[] args) {
 		pluginManager = LocalDevSetup.setupPluginManager(args);
 		try {
-			ifcDeserializerPlugin = pluginManager.getFirstDeserializer("ifc", Schema.IFC2X3TC1, true);
-			renderEnginePlugin = pluginManager.getRenderEngine("org.bimserver.ifcengine.JvmRenderEnginePlugin", true);
+			for (PluginContext pluginContext : pluginManager.loadPluginsFromEclipseProject(Paths.get("C:\\Git\\IfcPlugins\\IfcPlugins"))) {
+				pluginContext.initialize();
+			}
+			for (PluginContext pluginContext : pluginManager.loadPluginsFromEclipseProject(Paths.get("C:\\Git\\IfcEngine\\IfcEngine"))) {
+//			for (PluginContext pluginContext : pluginManager.loadPluginsFromEclipseProject(Paths.get("C:\\Git\\IfcOpenShell-BIMserver-plugin"))) {
+				pluginContext.initialize();
+			}
+			
+			ifcDeserializerPlugin = pluginManager.getDeserializerPlugin("org.bimserver.ifc.step.deserializer.Ifc2x3tc1StepDeserializerPlugin", true);
+			renderEnginePlugin = pluginManager.getRenderEnginePlugin("org.bimserver.ifcengine.JvmRenderEnginePlugin", true);
+			
+//			ifcDeserializerPlugin = pluginManager.getFirstDeserializer("ifc", Schema.IFC2X3TC1, true);
+//			renderEnginePlugin = pluginManager.getRenderEngine("org.bimserver.ifcengine.JvmRenderEnginePlugin", true);
 		} catch (PluginException e) {
 			e.printStackTrace();
 		}
@@ -65,7 +78,7 @@ public class Calculator {
 		return mappings;
 	}
 	
-	protected List<Space> calculateSpaces(File file) {
+	protected List<Space> calculateSpaces(Path file) {
 		List<Space> spaces = new ArrayList<>();
 		try {
 			mappings = new HashMap<>();
@@ -101,7 +114,7 @@ public class Calculator {
 			settings.setGenerateTriangles(true);
 			settings.setGenerateWireFrame(false);
 			
-			RenderEngineModel renderEngineModel = renderEngine.openModel(file);
+			RenderEngineModel renderEngineModel = renderEngine.openModel(file.toFile());
 			renderEngineModel.setSettings(settings);
 			renderEngineModel.generateGeneralGeometry();
 			

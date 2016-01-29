@@ -1,9 +1,9 @@
 package org.bimserver.elasstic;
 
-import java.io.ByteArrayOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Date;
 
-import org.apache.commons.io.IOUtils;
 import org.bimserver.interfaces.objects.SActionState;
 import org.bimserver.interfaces.objects.SExtendedData;
 import org.bimserver.interfaces.objects.SExtendedDataSchema;
@@ -19,12 +19,12 @@ import org.bimserver.models.store.StoreFactory;
 import org.bimserver.models.store.Trigger;
 import org.bimserver.plugins.PluginConfiguration;
 import org.bimserver.plugins.PluginContext;
-import org.bimserver.plugins.PluginException;
-import org.bimserver.plugins.PluginManager;
+import org.bimserver.plugins.PluginManagerInterface;
 import org.bimserver.plugins.services.BimServerClientInterface;
 import org.bimserver.plugins.services.NewRevisionHandler;
 import org.bimserver.plugins.services.ServicePlugin;
-import org.bimserver.shared.PublicInterfaceNotFoundException;
+import org.bimserver.shared.exceptions.PluginException;
+import org.bimserver.shared.exceptions.PublicInterfaceNotFoundException;
 import org.bimserver.shared.exceptions.ServerException;
 import org.bimserver.shared.exceptions.UserException;
 import org.slf4j.Logger;
@@ -32,31 +32,19 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ElassticTestService extends ServicePlugin {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElassticTestService.class);
-	private boolean initialized;
 	private PluginContext pluginContext;
 
 	public abstract String getCsvFileName();
 	
 	@Override
-	public void init(PluginManager pluginManager) throws PluginException {
+	public void init(PluginManagerInterface pluginManager) throws PluginException {
 		super.init(pluginManager);
 		pluginContext = pluginManager.getPluginContext(this);
-		initialized = true;
 	}
 	
 	@Override
-	public String getVersion() {
-		return "1.0";
-	}
-
-	@Override
 	public ObjectDefinition getSettingsDefinition() {
 		return null;
-	}
-
-	@Override
-	public boolean isInitialized() {
-		return initialized;
 	}
 
 	@Override
@@ -98,9 +86,9 @@ public abstract class ElassticTestService extends ServicePlugin {
 					file.setFilename(getCsvFileName());
 					extendedData.setSchemaId(extendedDataSchemaByNamespace.getOid());
 					try {
-						ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						IOUtils.copy(pluginContext.getResourceAsInputStream("input/" + getCsvFileName()), baos);
-						file.setData(baos.toByteArray());
+						Path csvFile = pluginContext.getRootPath().resolve("input/" + getCsvFileName());
+						byte[] bytes = Files.readAllBytes(csvFile);
+						file.setData(bytes);
 						file.setMime("text/json");
 
 						long fileId = bimServerClientInterface.getServiceInterface().uploadFile(file);
